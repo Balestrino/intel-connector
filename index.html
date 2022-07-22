@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'"
+    />
+    <title>Intel connector</title>
+  </head>
+  <body>
+    <h1>Intel connector</h1>
+    We are using Node.js <span id="node-version"></span>, Chromium
+    <span id="chrome-version"></span>, and Electron
+    <span id="electron-version"></span>.
+    <hr />
+    Token: <input id="token" />
+    <button id="button_token" type="button">Set</button>
+    <br /><br /><button id="button_readfile" type="button">read files</button>
+    <script src="./renderer.js"></script>
+  </body>
+</html>
