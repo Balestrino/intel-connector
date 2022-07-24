@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, net } = require('electron')
 const path = require('path')
 const fs = require('fs')
 const readLastLines = require('read-last-lines')
+const queryString = require('query-string');
 
 const systems = require("./systems.json")
 const systems_name_array = systems.map(item => (item.name).toLowerCase())
@@ -125,6 +126,8 @@ app.on('window-all-closed', () => {
 
 const scanChats = (chatToScan, dirPath) => {
   console.log("Scanning chats...")
+
+
   for (let i = 0; i < chatToScan.length; i++) {
     const fullPath = `${dirPath}\\${chatToScan[i]}`
     // console.log(fullPath)
@@ -133,12 +136,16 @@ const scanChats = (chatToScan, dirPath) => {
         const lines = line.split(/\r\n|\r|\n/);
         // console.log("lines: ", lines.length)
 
-        // console.log(`Last intel: ${lines[0]}`)
+        const last_intel = lines[0].replace(/[^a-z0-9-.\[\] ]/gi, '')
+        // console.log(`Last intel: ${last_intel}`)
+
         let chat = chatLogs.find(obj => obj.chatName === chatToScan[i])
-        if (chat.last !== encodeURIComponent(lines[0])) {
-          chat.last = encodeURIComponent(lines[0])
-          console.log(decodeURIComponent(chat.last))
-          apiSend(encodeURIComponent(lines[0]))
+        // console.log("Old intel: ", chat.last)
+
+        if (chat.last.localeCompare(last_intel)) {
+          chat.last = last_intel
+          // console.log(decodeURIComponent(chat.last))
+          apiSend(last_intel)
         }
       })
   }
@@ -146,15 +153,48 @@ const scanChats = (chatToScan, dirPath) => {
   setTimeout(scanChats, 10000, chatToScan, dirPath);
 }
 
+// ** Send data to api.eveonline.it
 const apiSend = (str) => {
 
-  const string = decodeURIComponent(str).toLowerCase()
-  console.log("ApiSend", string)
+  // let arr = []
+  // arr.push(str.toLowerCase())
+
+  const data = str.toLowerCase()
+  console.log("Parsing: ", data)
+
+  // const asd = " ´┐¢´┐¢[ 2022.07.22 16:30:13 ] black dharma > g5ed-y asd"
+  // console.log(data.toString().indexOf(`g5ed-y`))
+  // if (qwe.includes(`g5ed-y`) >= 0) {
+  //   console.log("FOUND!")
+  // }
 
   for (let i = 0; i < systems_name_array.length; i++) {
-    const systemName = (systems_name_array[i]).toLowerCase()
-    if (string.includes(systemName)) {
-      console.log("!BINGO!: ", string)
+
+    const systemName = systems_name_array[i]
+
+    if (data.includes(systemName)) {
+      const sysObj = systems.find(e => e.name === systemName)
+      console.log(`!BINGO! found ${systemName} as system_id: ${sysObj.system_id} ${sysObj.name}`)
+
+      var postData = queryString.stringify({
+        system: sysObj.system_id,
+        // string: encodeURIComponent(string)
+        string: data
+      });
+
+      const request = net.request({
+        method: 'POST',
+        url: 'https://api.eveonline.it/v1/map/upstream'
+      })
+
+      request.on('response', (response) => {
+        console.log(`STATUS: ${response.statusCode}`)
+        // console.log(`HEADERS: ${JSON.stringify(response.headers)}`)
+      })
+      request.setHeader('Content-Type', 'application/x-www-form-urlencoded');
+      request.write(postData, 'utf-8')
+      request.end()
+
       break
     }
   }
