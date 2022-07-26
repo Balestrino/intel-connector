@@ -9,6 +9,7 @@ const systems_name_array = systems.map(item => (item.name).toLowerCase())
 
 let userData = []
 let chatLogs = []
+let uuid = ''
 
 try {
   require('electron-reloader')(module)
@@ -40,6 +41,7 @@ app.whenReady().then(() => {
     const win = BrowserWindow.fromWebContents(webContents)
     win.setTitle(data)
     console.log(`Token: ${data}`)
+    uuid = data
 
     const request = net.request(`https://sso.eveonline.it/map/chars?uuid=${data}`)
 
@@ -177,6 +179,7 @@ const apiSend = (str) => {
       console.log(`!BINGO! found ${systemName} as system_id: ${sysObj.system_id} ${sysObj.name}`)
 
       var postData = queryString.stringify({
+        uuid,
         system: sysObj.system_id,
         // string: encodeURIComponent(string)
         string: data
