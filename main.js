@@ -59,12 +59,16 @@ app.whenReady().then(() => {
 
     request.end()
 
+    // ** send data back to renderer
+    event.data = { token: data }
+
   })
 
   ipcMain.on('readFile', (event, data) => {
     console.log("reading files")
 
-    const dirPath = 'C:\\Users\\tore\\Documents\\EVE\\logs\\Chatlogs'
+    const homeDir = app.getPath('home')
+    const dirPath = `${homeDir}\\Documents\\EVE\\logs\\Chatlogs`
 
     // ** get unique name chats
     const allChats = getUniqueChats(dirPath)
@@ -72,11 +76,16 @@ app.whenReady().then(() => {
     // console.log(uniqueChats)
 
     // ** filter channels
-    const filters = ["wc", "intel"]
+    const filters = ["wc", "Bean"]
+    let filteredChat = []
 
-    const filteredChat = uniqueChats.filter(chat => String(chat).startsWith(filters[0]))
+    for (let i = 0; i < filters.length; i++) {
+      const arr = uniqueChats.filter(chat => String(chat).startsWith(filters[i]))
+      // console.log("arr: ", arr)
+      filteredChat = [...filteredChat, ...arr]
+    }
 
-    console.log(filteredChat)
+    console.log('filteredChat: ', filteredChat)
 
     // ** scan directory for the last chatlogs (filtered)
 
@@ -97,24 +106,6 @@ app.whenReady().then(() => {
     console.log("chatLogs: ", chatLogs)
     scanChats(chatToScan, dirPath);
     // scanChats(chatToScan, dirPath)
-
-    return
-
-    // console.log(filenames)
-    for (let i = 0; i < filenames.length; i++) {
-      if (filenames[i].startsWith('wc')) {
-        const reversedUserId = "661916654".split("").reverse().join("");
-
-        const reversedString = filenames[i].split("").reverse().join("");
-
-        var userIdChat = reversedString.substring(
-          reversedString.indexOf(".") + 1,
-          reversedString.indexOf("_")
-        );
-        // console.log(`userid: ${userIdChat} | ${reversedString}`)
-        if (userIdChat == reversedUserId) console.log(filenames[i])
-      }
-    }
 
   })
 
@@ -152,23 +143,14 @@ const scanChats = (chatToScan, dirPath) => {
       })
   }
   // console.log("chatLogs: ", chatLogs)
-  setTimeout(scanChats, 10000, chatToScan, dirPath);
+  setTimeout(scanChats, 1000, chatToScan, dirPath);
 }
 
 // ** Send data to api.eveonline.it
 const apiSend = (str) => {
 
-  // let arr = []
-  // arr.push(str.toLowerCase())
-
   const data = str.toLowerCase()
   console.log("Parsing: ", data)
-
-  // const asd = " ´┐¢´┐¢[ 2022.07.22 16:30:13 ] black dharma > g5ed-y asd"
-  // console.log(data.toString().indexOf(`g5ed-y`))
-  // if (qwe.includes(`g5ed-y`) >= 0) {
-  //   console.log("FOUND!")
-  // }
 
   for (let i = 0; i < systems_name_array.length; i++) {
 
@@ -176,12 +158,11 @@ const apiSend = (str) => {
 
     if (data.includes(systemName)) {
       const sysObj = systems.find(e => e.name === systemName)
-      console.log(`!BINGO! found ${systemName} as system_id: ${sysObj.system_id} ${sysObj.name}`)
+      console.log(`YEAH! found ${systemName} as system_id: ${sysObj.system_id} ${sysObj.name}`)
 
       var postData = queryString.stringify({
         uuid,
         system: sysObj.system_id,
-        // string: encodeURIComponent(string)
         string: data
       });
 

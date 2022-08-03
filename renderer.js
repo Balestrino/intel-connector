@@ -4,7 +4,7 @@ const setButton = document.getElementById('button_token')
 const tokenInput = document.getElementById('token')
 const buttonReadfile = document.getElementById('button_readfile')
 
-setButton.addEventListener('click', () => {
+setButton.addEventListener('click', (event, data) => {
   const token = tokenInput.value
   window.electronAPI.setToken(token)
 });
