@@ -129,7 +129,7 @@ const scanChats = (chatToScan, dirPath) => {
         const lines = line.split(/\r\n|\r|\n/);
         // console.log("lines: ", lines.length)
 
-        const last_intel = lines[0].replace(/[^a-z0-9-.\[\] ]/gi, '')
+        const last_intel = lines[0].replace(/[^a-z0-9-\>.\[\] ]/gi, '')
         // console.log(`Last intel: ${last_intel}`)
 
         let chat = chatLogs.find(obj => obj.chatName === chatToScan[i])
@@ -158,12 +158,20 @@ const apiSend = (str) => {
 
     if (data.includes(systemName)) {
       const sysObj = systems.find(e => e.name === systemName)
-      console.log(`YEAH! found ${systemName} as system_id: ${sysObj.system_id} ${sysObj.name}`)
+
+      // * Get sender
+      const start_pos = data.indexOf(']') + 2;
+      const end_pos = data.lastIndexOf('>') - 1;
+      const sender = data.slice(start_pos, end_pos)
+
+      const string = data.substring(data.indexOf('>') + 2)
+      console.log(`Sender: "${sender}" \nSystem_id: ${sysObj.system_id} (${systemName}) \nString: ${string}`)
 
       var postData = queryString.stringify({
         uuid,
         system: sysObj.system_id,
-        string: data
+        sender,
+        string
       });
 
       const request = net.request({
