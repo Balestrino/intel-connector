@@ -129,7 +129,7 @@ const scanChats = (chatToScan, dirPath) => {
         const lines = line.split(/\r\n|\r|\n/);
         // console.log("lines: ", lines.length)
 
-        const last_intel = lines[0].replace(/[^a-z0-9-\>.\[\] ]/gi, '')
+        const last_intel = lines[0].replace(/[^a-z0-9-+\>.\[\] ]/gi, '')
         // console.log(`Last intel: ${last_intel}`)
 
         let chat = chatLogs.find(obj => obj.chatName === chatToScan[i])
